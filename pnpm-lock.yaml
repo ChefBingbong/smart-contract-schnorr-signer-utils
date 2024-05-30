@@ -8,6 +8,9 @@ dependencies:
   '@openzeppelin/contracts':
     specifier: 4.8.0
     version: 4.8.0
+  prettier:
+    specifier: ^3.2.5
+    version: 3.2.5
 
 devDependencies:
   '@nomicfoundation/hardhat-chai-matchers':
@@ -3116,6 +3119,12 @@ packages:
     engines: {node: '>=10.13.0'}
     hasBin: true
     dev: true
+
+  /prettier@3.2.5:
+    resolution: {integrity: sha512-3/GWa9aOC0YeD7LUfvOG2NiDyhOWRvt1k+rcKhOuYnMY24iiCphgneUfJDyFXd6rZCAnuLBv6UeAULtrhT/F4A==}
+    engines: {node: '>=14'}
+    hasBin: true
+    dev: false
 
   /process-nextick-args@2.0.1:
     resolution: {integrity: sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==}

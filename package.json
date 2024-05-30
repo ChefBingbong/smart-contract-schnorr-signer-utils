@@ -4,7 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "format:check": "prettier --check --loglevel error \"{src,test}/**/*.{js,jsx,ts,tsx,json}\"",
+    "format:write": "prettier --write \"{src,test}/**/*.{js,jsx,ts,tsx,json}\""
   },
   "packageManager": "pnpm@8.15.4",
   "keywords": [],
@@ -33,6 +35,7 @@
     "typescript": ">=4.5.0"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "4.8.0"
+    "@openzeppelin/contracts": "4.8.0",
+    "prettier": "^3.2.5"
   }
 }
