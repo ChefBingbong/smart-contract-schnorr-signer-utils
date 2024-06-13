@@ -3,6 +3,7 @@ pragma solidity ^0.8.6;
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 import {Secp256k1} from "./Secp256k1.sol";
 import {IWallet} from "./interfaces/IWallet.sol";
+import "hardhat/console.sol";
 
 contract ECDSAWalletVerifier {
   using Secp256k1 for *;
@@ -33,6 +34,68 @@ contract ECDSAWalletVerifier {
 
     out_e = uint256(keccak256(abi.encodePacked(pubkeyX, pubkeyY, kgX, kgY, message)));
     out_s = mulmod(secret, out_e, NN) + k;
+  }
+
+  function modN(int256 x) public pure returns (uint256) {
+    int256 result = x % int256(NN);
+    if (result < 0) {
+      result += int256(NN);
+    }
+    return uint256(result);
+  }
+
+  function CreateProof2(bytes32 privateKey, uint256 message, bytes32 a) public {
+    // (pubkeyX, pubkeyY) = Secp256k1.ecMul(secret % Secp256k1.PP, Secp256k1.Gx, Secp256k1.Gy, Secp256k1.A, Secp256k1.PP);
+    // uint256 k = log256(uint256(keccak256(abi.encodePacked(message, secret))) % Secp256k1.PP) * block.timestamp;
+    // (uint256 kgX, uint256 kgY) = Secp256k1.ecMul(k % Secp256k1.PP, Secp256k1.Gx, Secp256k1.Gy, Secp256k1.A, Secp256k1.PP);
+
+    // out_e = uint256(keccak256(abi.encodePacked(pubkeyX, pubkeyY, kgX, kgY, message)));
+    // out_s = mulmod(secret, out_e, NN) + k;
+    uint256 d_ = uint256(privateKey);
+    (uint256 px, uint256 py) = Secp256k1.ecMul(d_, Secp256k1.Gx, Secp256k1.Gy, Secp256k1.A, Secp256k1.PP);
+    console.log(px, py);
+    bytes32[1] memory aa = [a];
+    bytes32 t = bytes32(uint256(-int256(d_)) % Secp256k1.PP ^ uint256(taggedHash("BIP0340/aux", aa)));
+    console.logBytes32(t);
+  }
+
+  mapping(string => bytes) private taggedHashPrefixes;
+
+  function concatBytes(bytes32[2] memory arrays) public pure returns (bytes memory) {
+    uint256 totalLength = 0;
+    for (uint256 i = 0; i < arrays.length; i++) {
+      totalLength += arrays[i].length;
+    }
+
+    bytes memory result = new bytes(totalLength);
+    uint256 pad = 0;
+    for (uint256 i = 0; i < arrays.length; i++) {
+      bytes32 array = arrays[i];
+      for (uint256 j = 0; j < array.length; j++) {
+        result[pad + j] = array[j];
+      }
+      pad += array.length;
+    }
+
+    return result;
+  }
+
+  function taggedHash(string memory tag, bytes32[1] memory messages) public returns (bytes32) {
+    bytes memory tagP = taggedHashPrefixes[tag];
+    if (bytesToUint(tagP) == 0) {
+      bytes32 tagH = sha256(abi.encodePacked(tag));
+      bytes32[2] memory bytesArrays = [tagH, tagH];
+
+      tagP = concatBytes(bytesArrays);
+
+      taggedHashPrefixes[tag] = tagP;
+    }
+    bytes memory concatenatedMessages;
+    for (uint256 i = 0; i < messages.length; i++) {
+      concatenatedMessages = abi.encodePacked(concatenatedMessages, messages[i]);
+    }
+
+    return sha256(abi.encodePacked(tagP, concatenatedMessages));
   }
 
   function VerifyProof(uint256[2] memory pubkey, uint256 message, uint256 s, uint256 e) public pure returns (bool verified) {
